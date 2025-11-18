@@ -1,0 +1,44 @@
+
+workflow:
+- edit text files in a git clone
+- commit
+	- linter checks parse errors
+- push
+- view some URL
+	- do today's cards
+	- remembers answers in localstorage
+
+
+data model:
+- card has front and back
+	- some text expands to many cards
+	- card has an eternal ID (sha1)
+	- ID collisions not allowed on publish (rare; just reword it)
+- raw observations at runtime:
+	{time, card_id, score1234}
+queries:
+- read: what cards are due on-or-before today?
+	- range from earliest due date to today
+	- can step by 1 day since localStorage lacks range queries
+- write: update card
+	- due date
+	- other weights / parameters
+storage maps:
+- () -> earliest due date
+- due date -> [card ids]
+- card id -> weights
+	- maybe split by scheduler
+
+
+
+
+impl order:
+[ ] basic
+	[ ] parse cards (simple only)
+	[ ] present one card
+	[ ] schedule on answer (dumb 2x 0x)
+	[ ] present first due card
+[ ] extensions
+	[ ] expand during parse
+	[ ] good scheduler
+		https://borretti.me/article/implementing-fsrs-in-100-lines
