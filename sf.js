@@ -9,6 +9,10 @@ class Card {
     toString() {
         return `Q: ${this.front}\nA: ${this.back}`;
     }
+
+    async hash() {
+        return [...new Uint8Array(await crypto.subtle.digest('sha-1', new TextEncoder('utf-8').encode(this.toString())))].map(b => b.toString(16)).join('');
+    }
 }
 
 function parseCards(text) { // -> [cards, errors]
@@ -19,6 +23,7 @@ function parseCards(text) { // -> [cards, errors]
     for (const p of paragraphs) {
         let lines = p.split('\n');
         lines = lines.filter(line => !line.startsWith('#'));  // drop comments
+        lines = lines.filter(line => line); // drop empty lines
 
         if (lines.length == 0) {
             // noop
@@ -37,3 +42,35 @@ function parseCards(text) { // -> [cards, errors]
     return [cards, errors];
 }
 
+
+async function runApp() {
+    let [cards, errors] = parseCards(document.body.innerHTML);
+    console.log({ cards, errors });
+
+    document.body.innerHTML = '';
+
+
+    document.writeln(`
+        <style>
+        .card { border: 1px solid black; border-radius: 3px; margin: 1em; }
+        .card .front { font-weight: bold; }
+        .card .hash { color: gray; font-size: 0.75lh; }
+
+        .error { border: 1px solid red; border-radius: 3px; margin: 1em; }
+        </style>
+        `);
+    for (const card of cards) {
+        document.writeln(`
+            <div class="card">
+                <div class="hash">${await card.hash()}</div>
+                <div class="front">${card.front}</div>
+                <div class="back">${card.back}</div>
+            </div>
+        `)
+    }
+    for (const error of errors) {
+        document.writeln(`
+            <div class="error">${error}</div>
+        `)
+    }
+}

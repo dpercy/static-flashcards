@@ -1,36 +1,21 @@
 <title>static flashcards</title>
 <script src="sf.js"></script>
-<script>
-    window.onload = function () {
-        console.log(cards_text);
-
-        function update() {
-
-            let [cards, errors] = parseCards(cards_text.value);
-            cards_parsed.innerHTML = '<ul>' + cards.map(card => {
-                return `<li><ul><li>${card.front}<li>${card.back}</ul>`;
-            }).join('') + '</ul>'
-            cards_errors.innerText = errors.join('\n\n');
-        }
-
-        cards_text.onchange = update;
-        cards_text.onkeyup = update;
-        update();
-    };
-</script>
-
-<p>hi</p>
-
-<textarea id="cards_text">
+<script>window.onload = runApp;</script>
 
 Q: What is the air speed velocity of an unladen swallow?
 A: African or European?
 
 Q: How much wood could a woodchuck chuck?
+# embedded comment
 A: All the wood he could chuck.
 
+Q: How many cards are here?
+A: Three.
 
-</textarea>
+# lone comment
 
-<div id="cards_parsed"></div>
-<div id="cards_errors"></div>
+Q: What is the sound of one hand clapping?
+
+
+
+A: Why is this answer not preceeded by a question?
