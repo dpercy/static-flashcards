@@ -1,1 +1,36 @@
-hi
+<title>static flashcards</title>
+<script src="sf.js"></script>
+<script>
+    window.onload = function () {
+        console.log(cards_text);
+
+        function update() {
+
+            let [cards, errors] = parseCards(cards_text.value);
+            cards_parsed.innerHTML = '<ul>' + cards.map(card => {
+                return `<li><ul><li>${card.front}<li>${card.back}</ul>`;
+            }).join('') + '</ul>'
+            cards_errors.innerText = errors.join('\n\n');
+        }
+
+        cards_text.onchange = update;
+        cards_text.onkeyup = update;
+        update();
+    };
+</script>
+
+<p>hi</p>
+
+<textarea id="cards_text">
+
+Q: What is the air speed velocity of an unladen swallow?
+A: African or European?
+
+Q: How much wood could a woodchuck chuck?
+A: All the wood he could chuck.
+
+
+</textarea>
+
+<div id="cards_parsed"></div>
+<div id="cards_errors"></div>

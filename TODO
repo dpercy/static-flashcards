@@ -34,7 +34,7 @@ storage maps:
 
 impl order:
 [ ] basic
-	[ ] parse cards (simple only)
+	[x] parse cards (simple only)
 	[ ] present one card
 	[ ] schedule on answer (dumb 2x 0x)
 	[ ] present first due card
