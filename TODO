@@ -29,14 +29,17 @@ storage maps:
 - card id -> weights
 	- maybe split by scheduler
 
+or dumber storage:
+- sorted list of (due date, card id)
+- 
 
 
 
 impl order:
 [ ] basic
 	[x] parse cards (simple only)
-	[ ] present one card
-	[ ] schedule on answer (dumb 2x 0x)
+	[-] present one card
+	[x] schedule on answer (dumb 2x 0x)
 	[ ] present first due card
 [ ] extensions
 	[ ] expand during parse

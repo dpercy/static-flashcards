@@ -4,6 +4,8 @@ class Card {
     constructor(front, back) {
         this.front = front;
         this.back = back;
+
+        Object.freeze(this);
     }
 
     toString() {
@@ -44,13 +46,115 @@ function parseCards(text) { // -> [cards, errors]
 }
 
 
+function getEpoch() {
+    return '2000-01-01';
+}
+function getToday() {
+    return new Date().toLocaleDateString('sv');
+}
+function dateAdd(start, days) {
+    const dayMillis = 24 * 3600 * 1000;
+    const startMillis = +new Date(start + ' 00:00:00');
+    const endMillis = startMillis + days * dayMillis;
+    return new Date(endMillis).toLocaleDateString('sv');
+}
+function isDateString(s) {
+    return dateAdd(s, 0) == s;
+}
+
+// Stats about responses to the card.
+//
+//   1. due
+//   2. interval
+class CardStats {
+    constructor(card_id, card, due, interval) {
+        if (!(card instanceof Card)) {
+            throw new Error(`Expected a Card: ${card}`);
+        }
+        if (!isDateString(due)) {
+            throw new Error(`Expected a date string: ${due}`);
+        }
+        if (!(typeof interval == 'number' && (interval | 0) == interval && interval >= 0)) {
+            throw new Error(`Expected a nonnegative integer: ${interval}`);
+        }
+
+        this.card_id = card_id;
+        this.card = card;
+        this.due = due;
+        this.interval = interval;
+
+        Object.freeze(this);
+    }
+
+    static async makeDefault(card) {
+        return new CardStats(await card.hash(), card, getEpoch(), 1);
+    }
+
+    rescheduled(today, newInterval) {
+        newInterval *= Math.max(1, newInterval);
+        return new CardStats(
+            this.card_id,
+            dateAdd(today, newInterval),
+            newInterval
+        );
+    }
+
+    updateCorrect(today) { // -> CardStats
+        return this.rescheduled(today, this.interval * 2);
+    }
+    updateIncorrect(today) { // -> CardStats
+        return this.rescheduled(today, 0);
+    }
+}
+
+class DB {
+    constructor(stats) {
+        this._statsById = {};
+        for (const s of stats) {
+            this._statsById[s.card_id] = s;
+        }
+    }
+
+    static async open(text) {
+        let [cards, errors] = parseCards(document.body.innerHTML);
+        for (const e of errors) {
+            console.error('malformed card', e);
+        }
+
+        let stats = [];
+        for (const card of cards) {
+            stats.push(await CardStats.makeDefault(card));
+        }
+
+        return new DB(stats);
+
+    }
+
+    async saveCardStats(stats) {
+        if (!(stats instanceof CardStats)) {
+            throw new Error('Expected a CardStats: ' + stats);
+        }
+
+        this._statsById[stats.card_id] = stats;
+    }
+
+    getCardStatsDueAt(today) { // -> [CardStats]
+        return this.getAllStats().filter(stats => stats.due <= today);
+    }
+
+    getAllStats() {
+        return Object.values(this._statsById);
+    }
+}
+
+
 // for browser
 async function runApp() {
-    let [cards, errors] = parseCards(document.body.innerHTML);
-    console.log({ cards, errors });
+    let db = await DB.open(document.body.innerHTML);
+
+
 
     document.body.innerHTML = '';
-
 
     document.writeln(`
         <style>
@@ -61,18 +165,17 @@ async function runApp() {
         .error { border: 1px solid red; border-radius: 3px; margin: 1em; }
         </style>
         `);
-    for (const card of cards) {
+    for (const stats of db.getCardStatsDueAt(getToday())) {
+        const { card } = stats;
         document.writeln(`
             <div class="card">
                 <div class="hash">${await card.hash()}</div>
                 <div class="front">${card.front}</div>
                 <div class="back">${card.back}</div>
+
+                <p>
+                    due ${stats.due}
             </div>
-        `)
-    }
-    for (const error of errors) {
-        document.writeln(`
-            <div class="error">${error}</div>
         `)
     }
 }
