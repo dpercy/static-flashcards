@@ -23,6 +23,7 @@ function parseCards(text) { // -> [cards, errors]
     for (const p of paragraphs) {
         let lines = p.split('\n');
         lines = lines.filter(line => !line.startsWith('#'));  // drop comments
+        lines = lines.filter(line => !line.startsWith('<'));  // drop tags
         lines = lines.filter(line => line); // drop empty lines
 
         if (lines.length == 0) {
@@ -43,6 +44,7 @@ function parseCards(text) { // -> [cards, errors]
 }
 
 
+// for browser
 async function runApp() {
     let [cards, errors] = parseCards(document.body.innerHTML);
     console.log({ cards, errors });
@@ -73,4 +75,22 @@ async function runApp() {
             <div class="error">${error}</div>
         `)
     }
+}
+
+// for CLI
+async function main() {
+    const fs = require('fs');
+    const process = require('process');
+
+    const text = fs.readFileSync('index.html').toString();
+    const [cards, errors] = parseCards(text);
+    if (errors.length > 0) {
+        console.error(`${errors.length} errors:`, errors);
+        process.exit(1);
+    }
+}
+
+
+if (typeof require !== 'undefined' && require.main === module) {
+    main();
 }
