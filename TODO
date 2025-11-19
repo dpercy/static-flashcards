@@ -40,8 +40,15 @@ impl order:
 	[x] parse cards (simple only)
 	[-] present one card
 	[x] schedule on answer (dumb 2x 0x)
-	[ ] present first due card
+	[x] present first due card
+	[x] button to reveal answer
+		- UI state only
+	[x] button to record whether correct
+		- reschedules
 [ ] extensions
 	[ ] expand during parse
 	[ ] good scheduler
 		https://borretti.me/article/implementing-fsrs-in-100-lines
+	[ ] shuffle presentation order
+		- to avoid familiar patterns when practicing
+		- det - for stability on refresh

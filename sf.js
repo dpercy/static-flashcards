@@ -87,13 +87,14 @@ class CardStats {
     }
 
     static async makeDefault(card) {
-        return new CardStats(await card.hash(), card, getEpoch(), 1);
+        return new CardStats(await card.hash(), card, getEpoch(), 0);
     }
 
     rescheduled(today, newInterval) {
-        newInterval *= Math.max(1, newInterval);
+        newInterval = Math.max(1, newInterval);
         return new CardStats(
             this.card_id,
+            this.card,
             dateAdd(today, newInterval),
             newInterval
         );
@@ -131,6 +132,7 @@ class DB {
     }
 
     async saveCardStats(stats) {
+        console.log('saving', stats);
         if (!(stats instanceof CardStats)) {
             throw new Error('Expected a CardStats: ' + stats);
         }
@@ -147,37 +149,44 @@ class DB {
     }
 }
 
-
 // for browser
 async function runApp() {
-    let db = await DB.open(document.body.innerHTML);
+    window.db = await DB.open(document.body.innerHTML);
 
+    redraw();
+}
 
+function redraw() {
+    let result = '';
+    result += `<div>reviewing for ${getToday()}</div>`;
 
-    document.body.innerHTML = '';
+    const dueToday = db.getCardStatsDueAt(getToday());
+    if (dueToday.length == 0) {
+        result += `
+            <div>done!</div>
+        `;
+    } else {
+        // Only the first one.
+        const stats = dueToday[0];
+        const { card_id, card } = stats;
+        window.stats = stats;
 
-    document.writeln(`
-        <style>
-        .card { border: 1px solid black; border-radius: 3px; margin: 1em; }
-        .card .front { font-weight: bold; }
-        .card .hash { color: gray; font-size: 0.75lh; }
+        result += `
+            <details>
+                <summary>Q: ${card.front}</summary>
+                A: ${card.back}
 
-        .error { border: 1px solid red; border-radius: 3px; margin: 1em; }
-        </style>
-        `);
-    for (const stats of db.getCardStatsDueAt(getToday())) {
-        const { card } = stats;
-        document.writeln(`
-            <div class="card">
-                <div class="hash">${await card.hash()}</div>
-                <div class="front">${card.front}</div>
-                <div class="back">${card.back}</div>
-
-                <p>
-                    due ${stats.due}
-            </div>
-        `)
+                <button onclick="db.saveCardStats(stats.updateIncorrect(getToday())); redraw()">wrong</button>
+                <button onclick="db.saveCardStats(stats.updateCorrect(getToday())); redraw()">right</button>
+            </detail>
+        `;
     }
+
+    document.body.innerHTML = result;
+}
+
+function wrong() {
+
 }
 
 // for CLI
