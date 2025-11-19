@@ -6,5 +6,6 @@ help:
 
 install-hook:
 	echo 'node sf.js' > .git/hooks/pre-commit
+	chmod +x .git/hooks/pre-commit
 
 
