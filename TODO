@@ -45,6 +45,7 @@ impl order:
 		- UI state only
 	[x] button to record whether correct
 		- reschedules
+[ ] write some cards!
 [ ] extensions
 	[ ] expand during parse
 	[ ] good scheduler
