@@ -45,11 +45,17 @@ impl order:
 		- UI state only
 	[x] button to record whether correct
 		- reschedules
+
+	[ ] persist DB state
+
 [ ] write some cards!
+	[x] months... just testing
 [ ] extensions
-	[ ] expand during parse
-	[ ] good scheduler
-		https://borretti.me/article/implementing-fsrs-in-100-lines
-	[ ] shuffle presentation order
+	[x] shuffle presentation order
 		- to avoid familiar patterns when practicing
 		- det - for stability on refresh
+
+	[ ] good scheduler
+		https://borretti.me/article/implementing-fsrs-in-100-lines
+
+	[ ] expand during parse

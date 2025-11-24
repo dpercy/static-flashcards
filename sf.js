@@ -1,5 +1,37 @@
 // static flashcards
 
+async function hash(str) {
+    const utf8Bytes = new TextEncoder('utf-8').encode(str);
+    const hashBytes = new Uint8Array(await crypto.subtle.digest('sha-1', utf8Bytes));
+    const hashStr = [...hashBytes].map(b => b.toString(16)).join('');
+    return hashStr;
+}
+
+// Choose one item pseudorandomly, different for each day.
+// 
+async function pick(items, today) { // -> item
+    console.log('picking', items, today);
+
+    const hashes = [];
+    for (const item of items) {
+        console.log('hash input', item, today + JSON.stringify(item));
+        hashes.push(await hash(today + JSON.stringify(item)));
+        console.log('hash', hashes.slice(-1)[0]);
+    }
+
+    let minHash = hashes[0];
+    let minItem = items[0];
+    for (let i = 1; i < items.length; ++i) {
+        if (hashes[i] < minHash) {
+            minHash = hashes[i];
+            minItem = items[i];
+        }
+    }
+
+    return minItem;
+}
+
+
 class Card {
     constructor(front, back) {
         this.front = front;
@@ -13,7 +45,7 @@ class Card {
     }
 
     async hash() {
-        return [...new Uint8Array(await crypto.subtle.digest('sha-1', new TextEncoder('utf-8').encode(this.toString())))].map(b => b.toString(16)).join('');
+        return await hash(this.toString());
     }
 }
 
@@ -153,31 +185,35 @@ class DB {
 async function runApp() {
     window.db = await DB.open(document.body.innerHTML);
 
-    redraw();
+    await redraw();
 }
 
-function redraw() {
-    let result = '';
-    result += `<div>reviewing for ${getToday()}</div>`;
+async function redraw() {
+    const today = getToday();
 
-    const dueToday = db.getCardStatsDueAt(getToday());
+    let result = '';
+    result += `<div>reviewing for ${today}</div>`;
+
+    const dueToday = db.getCardStatsDueAt(today);
     if (dueToday.length == 0) {
         result += `
             <div>done!</div>
         `;
     } else {
         // Only the first one.
-        const stats = dueToday[0];
+        const stats = await pick(dueToday, today);
         const { card_id, card } = stats;
         window.stats = stats;
 
         result += `
             <details>
                 <summary>Q: ${card.front}</summary>
-                A: ${card.back}
+                <div class="answer">A: ${card.back}</div>
 
-                <button onclick="db.saveCardStats(stats.updateIncorrect(getToday())); redraw()">wrong</button>
-                <button onclick="db.saveCardStats(stats.updateCorrect(getToday())); redraw()">right</button>
+                <div class="grade">
+                    <button onclick="db.saveCardStats(stats.updateIncorrect(getToday())); redraw()">wrong</button>
+                    <button onclick="db.saveCardStats(stats.updateCorrect(getToday())); redraw()">right</button>
+                </div>
             </detail>
         `;
     }

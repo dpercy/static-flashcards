@@ -1,0 +1,42 @@
+body>div:first-child {
+    position: absolute;
+    top: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center; */
+    height: 100vh;
+    margin: 0;
+    background-color: lightgray;
+
+    padding-top: 25vh;
+}
+
+details {
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 5px;
+    margin: 1em;
+    padding: 2em;
+}
+
+summary {
+    cursor: pointer;
+    list-style-position: outside;
+}
+
+details>* {
+    margin: 1em;
+}
+
+.grade {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.grade>button {
+    padding: 1em;
+}
